@@ -1,6 +1,6 @@
 #include <fcntl.h>
-#include <libevdev.h>
-#include <libevdev-uinput.h>
+#include <libevdev/libevdev.h>
+#include <libevdev/libevdev-uinput.h>
 
 #include "keyboard.h"
 #include "Logger.h"
