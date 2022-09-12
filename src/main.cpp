@@ -89,7 +89,7 @@ int parseFile(std::string instructionsFileName)
 int main(int argc, char* argv[])
 {
   printf("\033[0;33m ********************************************************************* \033[0m\n");
-  printf("\033[0;33m **                    Keyboard Events Simulator                    ** \033[0m\n");
+  printf("\033[0;33m **                      RCU Events Simulator                       ** \033[0m\n");
   printf("\033[0;33m **  tick Period is 2 seconds (minimum time between 2 key events)   ** \033[0m\n");
   printf("\033[0;33m ********************************************************************* \033[0m\n");
 
@@ -99,7 +99,7 @@ int main(int argc, char* argv[])
   if (argc != 2) {
 
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Invalid instructions file, please specify one.");
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: keyboard-sym instructions");
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: RcuSimulator instructions");
     return 0;
   }
 
