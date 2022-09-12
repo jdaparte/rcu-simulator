@@ -1,11 +1,11 @@
 #include <fcntl.h>
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>
+#include <iostream>
 
 #include "keyboard.h"
 #include "Logger.h"
 
-#include <iostream>
 
 Instruction::Instruction(int key, int wait)
 : _key{key}, _wait{wait}
