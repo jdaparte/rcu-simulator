@@ -56,14 +56,13 @@ static void tick(void *timerHd)
   }
 }
 
-int parseFile()
+int parseFile(std::string instructionsFileName)
 {
-  std::string fileName {"/tmp/instructions.txt"};
   std::ifstream fileStream;
-  fileStream.open(fileName.c_str(), std::ifstream::in);
+  fileStream.open(instructionsFileName.c_str(), std::ifstream::in);
   if (!fileStream.is_open())
   {
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "The file %s cannot be opened", fileName.c_str());
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "The file %s cannot be opened", instructionsFileName.c_str());
     return 1;
   }
 
@@ -97,7 +96,14 @@ int main(int argc, char* argv[])
   signal(SIGINT, intHandler);
   LOGGER->SetLogLevel(LOGLEVEL_ALL, 1);
 
-  if (parseFile() == -1)
+  if (argc != 2) {
+
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "Invalid instructions file, please specify one.");
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: keyboard-sym instructions");
+    return 0;
+  }
+
+  if (parseFile(std::string(argv[1])) == -1)
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Error parsing file");
 
   epollServer = new EpollServer();
@@ -105,11 +111,11 @@ int main(int argc, char* argv[])
 
   timespec timeOut2Seconds;
   timeOut2Seconds.tv_sec = 2;
+  timeOut2Seconds.tv_nsec = 0;
 
   timerHandle1 = new TimerHandle();
   timerHandle1->RegisterCallback(tick);
   timerHandle1->SetTimeout(timeOut2Seconds, true);
-  
   epollServer->Add(timerHandle1);
 
   std::thread t([] { StartEpollServer(); });
