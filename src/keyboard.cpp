@@ -7,8 +7,8 @@
 #include "Logger.h"
 
 
-Instruction::Instruction(int key, int wait)
-: _key{key}, _wait{wait}
+Instruction::Instruction(int key, int wait, std::string description)
+: _key{key}, _wait{wait}, _description{description}
 {};
 
 
@@ -53,9 +53,9 @@ int16_t Keyboard::openUInputDevice(const char *devicePath)
   return 0;
 }
 
-void Keyboard::event(int key, EventType et)
+void Keyboard::event(int key, std::string description, EventType et)
 {
-  LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event", key);
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", key, description.c_str());
 
   if (et == EventType::PRESS || et == EventType::PRESSRELEASE)
   {

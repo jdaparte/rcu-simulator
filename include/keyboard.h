@@ -60,10 +60,11 @@ static const std::map<std::string, int>  Keys
 
 struct Instruction
 {
-  Instruction(int key, int wait);
+  Instruction(int key, int wait, std::string description);
 
-  int _key;
-  int _wait;
+  int _key {0};
+  int _wait {0};
+  std::string _description {""};
 };
 
 class Keyboard
@@ -79,5 +80,5 @@ public:
   Keyboard(const std::string device = "/dev/input/event1");
   ~Keyboard();
 
-  void event(int key, EventType et = EventType::PRESSRELEASE);
+  void event(int key, std::string description, EventType et = EventType::PRESSRELEASE);
 };

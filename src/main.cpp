@@ -45,7 +45,8 @@ static void tick(void *timerHd)
 
   if (waitTime <= 2)
   {
-    keyboard->event(it.base()->_key);
+    auto instruction = it.base();
+    keyboard->event(instruction->_key, instruction->_description);
     waitTime = it.base()->_wait;
 
     it++;
@@ -67,7 +68,7 @@ int parseFile(std::string instructionsFileName)
   }
 
   std::string line;
-  while (std::getline(fileStream, line))
+  while (std::getline(fileStream, line, '\n'))
   {
     std::istringstream lineStream(line);
 
@@ -75,11 +76,14 @@ int parseFile(std::string instructionsFileName)
     if (std::getline(lineStream, key, ' '))
     {
       std::string time;
-      std::getline(lineStream, time);
+      std::getline(lineStream, time, ' ');
+
+      std::string description;
+      std::getline(lineStream, description);
 
       int keyValue = Keys.at(key);
       int timeValue = atoi(time.c_str());
-      instructions.emplace_back(keyValue, timeValue);
+      instructions.emplace_back(keyValue, timeValue, description);
     }
   }
 
