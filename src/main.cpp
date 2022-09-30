@@ -20,6 +20,7 @@ Keyboard *keyboard = nullptr;
  *    Instruction Structure:  
  *      - First field: Key to be pressed and released
  *      - Second field: Waiting time after presing the key (seconds)
+ *      - Third field: Description to be printed in logs (optional)
  */
 std::vector<Instruction> instructions {};
 
@@ -47,6 +48,7 @@ static void tick(void *timerHd)
   {
     auto instruction = it.base();
     keyboard->event(instruction->_key, instruction->_description);
+    //LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", instruction->_key, instruction->_description.c_str());
     waitTime = it.base()->_wait;
 
     it++;
@@ -70,20 +72,25 @@ int parseFile(std::string instructionsFileName)
   std::string line;
   while (std::getline(fileStream, line, '\n'))
   {
-    std::istringstream lineStream(line);
-
-    std::string key;
-    if (std::getline(lineStream, key, ' '))
-    {
-      std::string time;
-      std::getline(lineStream, time, ' ');
-
-      std::string description;
-      std::getline(lineStream, description);
-
-      int keyValue = Keys.at(key);
-      int timeValue = atoi(time.c_str());
-      instructions.emplace_back(keyValue, timeValue, description);
+    if (line[0] != '#' && line[0] != ' ' && line[0] != '\n') {   // Skip comments or empty lines
+      
+      std::istringstream lineStream(line);
+      std::string key{}, time{}, description{};
+      if (std::getline(lineStream, key, ' '))
+      {
+        std::getline(lineStream, time, ' ');
+        std::getline(lineStream, description);
+        try
+        {
+          int keyValue = Keys.at(key);
+          int timeValue = atoi(time.c_str());
+          instructions.emplace_back(keyValue, timeValue, description);
+        }
+        catch(const std::exception& e)
+        {
+          LOGGER->LOG(1, LOGLEVEL_ERROR, "%s, Invalid instruction %s, skipped", e.what(), key.c_str());
+        }
+      }
     }
   }
 

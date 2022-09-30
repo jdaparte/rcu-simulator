@@ -1,0 +1,54 @@
+#######################################################################
+# This instructions set navigates trow netflix main windows 2 minutes #
+#               and play a content for another 2 minutes              #
+#                                                                     #
+# Initial conditions:                                                 #
+#  - starts from netflix main windows being logged                    #
+#######################################################################
+RIGHT 3
+DOWN 3
+DOWN 3
+UP 3
+RIGHT 3
+DOWN 3
+DOWN 3
+RIGHT 3
+DOWN 3
+RIGHT 3
+LEFT 3
+RIGHT 3
+LEFT 3
+DOWN 3
+LEFT 3
+UP 3
+DOWN 3
+DOWN 3
+LEFT 3
+UP 3
+RIGHT 3
+RIGHT 3
+UP 3
+LEFT 3
+DOWN 3
+UP 3
+DOWN 3
+UP 3
+DOWN 2
+RIGHT 3
+RIGHT 3
+UP 3
+DOWN 3
+LEFT 3
+UP 3
+LEFT 3
+RIGHT 4
+UP 3
+DOWN 3
+RIGHT 3
+LEFT 3
+RIGHT 3
+DOWN 3
+OK 10
+OK 130
+BACK 3
+BACK 3
