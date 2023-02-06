@@ -1,5 +1,6 @@
 
 #include "keyboard.h"
+#include "routine.h"
 
 #include "TimerHandle.h"
 #include "EpollServer.h"
@@ -14,6 +15,7 @@
 TimerHandle *timerHandle1 = nullptr;
 EpollServer *epollServer = nullptr;
 Keyboard *keyboard = nullptr;
+#define DEFAULT_DEVICE "/dev/input/event1"
 
 /**
  * @brief Vector with instructions set to be repeted indefinitely.
@@ -46,9 +48,7 @@ static void tick(void *timerHd)
 
   if (waitTime <= 2)
   {
-    auto instruction = it.base();
-    keyboard->event(instruction->_key, instruction->_description);
-    //LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", instruction->_key, instruction->_description.c_str());
+    keyboard->event(*it.base());
     waitTime = it.base()->_wait;
 
     it++;
@@ -76,8 +76,7 @@ int parseFile(std::string instructionsFileName)
       
       std::istringstream lineStream(line);
       std::string key{}, time{}, description{};
-      if (std::getline(lineStream, key, ' '))
-      {
+      if (std::getline(lineStream, key, ' ')) {
         std::getline(lineStream, time, ' ');
         std::getline(lineStream, description);
         try
@@ -107,7 +106,7 @@ int main(int argc, char* argv[])
   signal(SIGINT, intHandler);
   LOGGER->SetLogLevel(LOGLEVEL_ALL, 1);
 
-  if (argc != 2) {
+  if (argc <= 2) {
 
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Invalid instructions file, please specify one.");
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: RcuSimulator instructions");
@@ -115,10 +114,16 @@ int main(int argc, char* argv[])
   }
 
   if (parseFile(std::string(argv[1])) == -1)
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "Error parsing file");
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "Error parsing instructions file");
+
+  std::string device = (std::string(argv[1]).empty() ? DEFAULT_DEVICE : std::string(argv[1]);
 
   epollServer = new EpollServer();
   keyboard = new Keyboard();
+  if(!keyboard->init(device)) {
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "openUInputDevice failed");
+    delete keyboard;
+  }
 
   timespec timeOut2Seconds;
   timeOut2Seconds.tv_sec = 2;

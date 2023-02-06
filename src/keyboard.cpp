@@ -6,21 +6,6 @@
 #include "keyboard.h"
 #include "Logger.h"
 
-
-Instruction::Instruction(int key, int wait, std::string description)
-: _key{key}, _wait{wait}, _description{description}
-{};
-
-
-Keyboard::Keyboard(const std::string device)
-{
-  if (openUInputDevice(device.c_str()) < 0)
-  {
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "openUInputDevice failed");
-  }
-  sleep(3);
-}
-
 Keyboard::~Keyboard()
 {
   libevdev_uinput_destroy(_uidev);
@@ -28,7 +13,7 @@ Keyboard::~Keyboard()
   close(_fd);
 }
 
-int16_t Keyboard::openUInputDevice(const char *devicePath)
+int16_t Keyboard::init(const char *devicePath)
 {
   if ((_fd = open(devicePath, O_WRONLY | O_NONBLOCK)) < 0)
   {
@@ -51,6 +36,10 @@ int16_t Keyboard::openUInputDevice(const char *devicePath)
   }
 
   return 0;
+}
+
+void Keyboard::event(Instruction instruction) {
+  event(instruction._key, instruction._description);
 }
 
 void Keyboard::event(int key, std::string description, EventType et)
