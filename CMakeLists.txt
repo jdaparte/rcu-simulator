@@ -7,7 +7,7 @@ project(RcuSimulator VERSION 0.1)
 find_package(PkgConfig)
 pkg_check_modules(RCU_SIMULATOR_DEPS REQUIRED 
                   tlf-common-utils 
-				          libevdev)
+			   libevdev)
 
 file(GLOB_RECURSE SOURCE_FILES
      "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp")

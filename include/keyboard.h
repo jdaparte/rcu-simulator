@@ -3,6 +3,8 @@
 #include <string>
 #include <map>
 
+#include "routine.h"
+
 enum class EventType
 {
   PRESS,
@@ -67,8 +69,10 @@ private:
 
 public:
   ~Keyboard();
+
   int16_t init(const char *devicePath);
 
-  void event(Instruction instruction);
-  void event(int key, std::string description, EventType et = EventType::PRESSRELEASE);
+  void event(const Instruction instruction);
+  void event(const std::string keyString, const std::string description, const EventType et = EventType::PRESSRELEASE);
+  void event(const int key, const std::string description, const EventType et = EventType::PRESSRELEASE);
 };

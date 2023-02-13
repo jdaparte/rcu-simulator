@@ -6,6 +6,7 @@
 #include "keyboard.h"
 #include "Logger.h"
 
+
 Keyboard::~Keyboard()
 {
   libevdev_uinput_destroy(_uidev);
@@ -15,6 +16,7 @@ Keyboard::~Keyboard()
 
 int16_t Keyboard::init(const char *devicePath)
 {
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Keyboard init %s", devicePath);
   if ((_fd = open(devicePath, O_WRONLY | O_NONBLOCK)) < 0)
   {
     LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s", devicePath);
@@ -38,11 +40,24 @@ int16_t Keyboard::init(const char *devicePath)
   return 0;
 }
 
-void Keyboard::event(Instruction instruction) {
+void Keyboard::event(const Instruction instruction) {
   event(instruction._key, instruction._description);
 }
 
-void Keyboard::event(int key, std::string description, EventType et)
+void Keyboard::event(const std::string keyString, const std::string description, const EventType et)
+{
+  try
+  {
+    const int key = Keys.at(keyString);
+    event(key, description, et);
+  }
+  catch(const std::exception& e)
+  {
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "%s, Invalid key %s, skipped", e.what(), keyString.c_str());
+  }
+}
+
+void Keyboard::event(const int key, const std::string description, const EventType et)
 {
   LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", key, description.c_str());
 

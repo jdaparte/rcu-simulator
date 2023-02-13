@@ -1,6 +1,5 @@
 
 #include "keyboard.h"
-#include "routine.h"
 
 #include "TimerHandle.h"
 #include "EpollServer.h"
@@ -12,19 +11,14 @@
 #include <fstream>
 #include <sstream>
 
+#define DEFAULT_DEVICE "/dev/input/event1"
+#define TICK_PERIOD 1
+
 TimerHandle *timerHandle1 = nullptr;
 EpollServer *epollServer = nullptr;
-Keyboard *keyboard = nullptr;
-#define DEFAULT_DEVICE "/dev/input/event1"
+Keyboard    *keyboard = nullptr;
 
-/**
- * @brief Vector with instructions set to be repeted indefinitely.
- *    Instruction Structure:  
- *      - First field: Key to be pressed and released
- *      - Second field: Waiting time after presing the key (seconds)
- *      - Third field: Description to be printed in logs (optional)
- */
-std::vector<Instruction> instructions {};
+
 
 bool keepRunning = true;
 
@@ -40,23 +34,19 @@ void StartEpollServer()
 
 static void tick(void *timerHd)
 {
-  static std::vector<Instruction>::const_iterator it {instructions.begin()};
-  static int waitTime {0};
+  static std::vector<Instruction>::iterator event {instructions.begin()};
+  static std::uint64_t iteration {0};
 
-  if(it == instructions.end())
-    it = instructions.begin();
-
-  if (waitTime <= 2)
-  {
-    keyboard->event(*it.base());
-    waitTime = it.base()->_wait;
-
-    it++;
+  keyboard->event(*event.base());
+  event++;
+  
+  if(event == instructions.end()) {
+    iteration++;
+    LOGGER->LOG(1, LOGLEVEL_INFO, "End of routine. Iteration %ld will begin.", iteration);
+    event = instructions.begin();
   }
-  else
-  {
-    waitTime -= 2;
-  }
+
+  timerHandle1->SetTimeout(event.base()->_wait, false);
 }
 
 int parseFile(std::string instructionsFileName)
@@ -82,8 +72,8 @@ int parseFile(std::string instructionsFileName)
         try
         {
           int keyValue = Keys.at(key);
-          int timeValue = atoi(time.c_str());
-          instructions.emplace_back(keyValue, timeValue, description);
+          int seconds = atoi(time.c_str());
+          instructions.emplace_back(keyValue, seconds, description);
         }
         catch(const std::exception& e)
         {
@@ -106,7 +96,7 @@ int main(int argc, char* argv[])
   signal(SIGINT, intHandler);
   LOGGER->SetLogLevel(LOGLEVEL_ALL, 1);
 
-  if (argc <= 2) {
+  if (argc != 2) {
 
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Invalid instructions file, please specify one.");
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: RcuSimulator instructions");
@@ -116,24 +106,23 @@ int main(int argc, char* argv[])
   if (parseFile(std::string(argv[1])) == -1)
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Error parsing instructions file");
 
-  std::string device = (std::string(argv[1]).empty() ? DEFAULT_DEVICE : std::string(argv[1]);
+  const std::string device = DEFAULT_DEVICE;//std::string(argv[2]).empty() ? DEFAULT_DEVICE : std::string(argv[2]);
 
   epollServer = new EpollServer();
   keyboard = new Keyboard();
-  if(!keyboard->init(device)) {
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "openUInputDevice failed");
-    delete keyboard;
-  }
-
-  timespec timeOut2Seconds;
-  timeOut2Seconds.tv_sec = 2;
-  timeOut2Seconds.tv_nsec = 0;
-
   timerHandle1 = new TimerHandle();
+
+  timespec timeOut2Seconds{1,0};
+
   timerHandle1->RegisterCallback(tick);
-  timerHandle1->SetTimeout(timeOut2Seconds, true);
+  timerHandle1->SetTimeout(timeOut2Seconds, false);
   epollServer->Add(timerHandle1);
 
+  if(keyboard->init(device.c_str())) {
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "init keyboard failed");
+    keepRunning = false;
+  }
+  
   std::thread t([] { StartEpollServer(); });
   t.detach();
 
@@ -143,11 +132,11 @@ int main(int argc, char* argv[])
   }
   
   LOGGER->LOG(1, LOGLEVEL_DEBUG, "Stop program");
-
   epollServer->Stop();
 
-  delete timerHandle1;
-  delete keyboard;
-  delete epollServer;
+  if (timerHandle1) delete timerHandle1;
+  if (keyboard)     delete keyboard;
+  if (epollServer)  delete epollServer;
+  
   return 0;
 }
