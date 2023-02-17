@@ -44,5 +44,21 @@ Routine::Routine(const std::string instructionsFileName)
     }
   }
 
+  _nextInstruction = instructions.begin();
+
   LOGGER->LOG(1, LOGLEVEL_INFO, "End of instructions parse, there are %d instructions.", instructions.size());
+}
+
+Instruction Routine::getNextInstruction()
+{
+  Instruction nextInstruction = *_nextInstruction.base();
+  _nextInstruction++;
+
+  if(_nextInstruction == instructions.end()) {
+    _iteration++;
+    LOGGER->LOG(1, LOGLEVEL_INFO, "End of routine. Iteration %ld will begin.", _iteration);
+    _nextInstruction = instructions.begin();
+  }
+
+  return nextInstruction;
 }

@@ -5,6 +5,8 @@
 
 #include "routine.h"
 
+#define DEFAULT_DEVICE "/dev/input/event1"
+
 enum class EventType
 {
   PRESS,

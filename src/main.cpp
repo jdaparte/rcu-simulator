@@ -4,6 +4,7 @@
 #include "TimerHandle.h"
 #include "EpollServer.h"
 #include "Logger.h"
+#include "routine.h"
 
 #include <signal.h>
 #include <thread>
@@ -12,13 +13,11 @@
 #include <sstream>
 
 #define DEFAULT_DEVICE "/dev/input/event1"
-#define TICK_PERIOD 1
 
 TimerHandle *timerHandle1 = nullptr;
 EpollServer *epollServer = nullptr;
 Keyboard    *keyboard = nullptr;
-
-
+Routine     *routine = nullptr;
 
 bool keepRunning = true;
 
@@ -34,56 +33,9 @@ void StartEpollServer()
 
 static void tick(void *timerHd)
 {
-  static std::vector<Instruction>::iterator event {instructions.begin()};
-  static std::uint64_t iteration {0};
-
-  keyboard->event(*event.base());
-  event++;
-  
-  if(event == instructions.end()) {
-    iteration++;
-    LOGGER->LOG(1, LOGLEVEL_INFO, "End of routine. Iteration %ld will begin.", iteration);
-    event = instructions.begin();
-  }
-
-  timerHandle1->SetTimeout(event.base()->_wait, false);
-}
-
-int parseFile(std::string instructionsFileName)
-{
-  std::ifstream fileStream;
-  fileStream.open(instructionsFileName.c_str(), std::ifstream::in);
-  if (!fileStream.is_open())
-  {
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "The file %s cannot be opened", instructionsFileName.c_str());
-    return 1;
-  }
-
-  std::string line;
-  while (std::getline(fileStream, line, '\n'))
-  {
-    if (line[0] != '#' && line[0] != ' ' && line[0] != '\n') {   // Skip comments or empty lines
-      
-      std::istringstream lineStream(line);
-      std::string key{}, time{}, description{};
-      if (std::getline(lineStream, key, ' ')) {
-        std::getline(lineStream, time, ' ');
-        std::getline(lineStream, description);
-        try
-        {
-          int keyValue = Keys.at(key);
-          int seconds = atoi(time.c_str());
-          instructions.emplace_back(keyValue, seconds, description);
-        }
-        catch(const std::exception& e)
-        {
-          LOGGER->LOG(1, LOGLEVEL_ERROR, "%s, Invalid instruction %s, skipped", e.what(), key.c_str());
-        }
-      }
-    }
-  }
-
-  return 0;
+  Instruction instruction = routine->getNextInstruction();
+  keyboard->event(instruction);
+  timerHandle1->SetTimeout(instruction._wait, false);
 }
 
 int main(int argc, char* argv[])
@@ -103,8 +55,7 @@ int main(int argc, char* argv[])
     return 0;
   }
 
-  if (parseFile(std::string(argv[1])) == -1)
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "Error parsing instructions file");
+  routine = new Routine(std::string(argv[1]));
 
   const std::string device = DEFAULT_DEVICE;//std::string(argv[2]).empty() ? DEFAULT_DEVICE : std::string(argv[2]);
 
@@ -134,6 +85,7 @@ int main(int argc, char* argv[])
   LOGGER->LOG(1, LOGLEVEL_DEBUG, "Stop program");
   epollServer->Stop();
 
+  if (routine)      delete routine;
   if (timerHandle1) delete timerHandle1;
   if (keyboard)     delete keyboard;
   if (epollServer)  delete epollServer;

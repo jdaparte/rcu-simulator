@@ -24,7 +24,11 @@ struct Instruction
 struct Routine
 {
   Routine(const std::string instructionsFileName);
+  Instruction getNextInstruction();
+
 
 private:
   std::vector<Instruction> instructions {};
+  std::vector<Instruction>::iterator _nextInstruction;
+  std::uint64_t _iteration {0};
 };
