@@ -40,16 +40,12 @@ int16_t Keyboard::init(const char *devicePath)
   return 0;
 }
 
-void Keyboard::event(const Instruction instruction) {
-  event(instruction._key, instruction._description);
-}
-
-void Keyboard::event(const std::string keyString, const std::string description, const EventType et)
+void Keyboard::event(const std::string keyString, const EventType et)
 {
   try
   {
     const int key = Keys.at(keyString);
-    event(key, description, et);
+    event(key, et);
   }
   catch(const std::exception& e)
   {
@@ -57,10 +53,8 @@ void Keyboard::event(const std::string keyString, const std::string description,
   }
 }
 
-void Keyboard::event(const int key, const std::string description, const EventType et)
+void Keyboard::event(const int key, const EventType et)
 {
-  LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", key, description.c_str());
-
   if (et == EventType::PRESS || et == EventType::PRESSRELEASE)
   {
     libevdev_uinput_write_event(_uidev, EV_KEY, static_cast<uint32_t>(key), 1);

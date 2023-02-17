@@ -24,7 +24,7 @@ struct Instruction
 struct Routine
 {
   Routine(const std::string instructionsFileName);
-  Instruction getNextInstruction();
+  const Instruction& getNextInstruction();
 
 
 private:

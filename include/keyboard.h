@@ -3,8 +3,6 @@
 #include <string>
 #include <map>
 
-#include "routine.h"
-
 #define DEFAULT_DEVICE "/dev/input/event1"
 
 enum class EventType
@@ -74,7 +72,6 @@ public:
 
   int16_t init(const char *devicePath);
 
-  void event(const Instruction instruction);
-  void event(const std::string keyString, const std::string description, const EventType et = EventType::PRESSRELEASE);
-  void event(const int key, const std::string description, const EventType et = EventType::PRESSRELEASE);
+  void event(const std::string keyString, const EventType et = EventType::PRESSRELEASE);
+  void event(const int key, const EventType et = EventType::PRESSRELEASE);
 };

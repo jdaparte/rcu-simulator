@@ -5,7 +5,6 @@
 
 #include <fstream>
 #include <sstream>
-#include <vector>
 
 Instruction::Instruction(int key, int seconds, std::string description)
 : _key{key}, _wait{seconds, 0}, _description{description}
@@ -49,9 +48,9 @@ Routine::Routine(const std::string instructionsFileName)
   LOGGER->LOG(1, LOGLEVEL_INFO, "End of instructions parse, there are %d instructions.", instructions.size());
 }
 
-Instruction Routine::getNextInstruction()
+const Instruction& Routine::getNextInstruction()
 {
-  Instruction nextInstruction = *_nextInstruction.base();
+  const Instruction& nextInstruction = *_nextInstruction.base();
   _nextInstruction++;
 
   if(_nextInstruction == instructions.end()) {

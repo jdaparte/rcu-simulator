@@ -33,9 +33,11 @@ void StartEpollServer()
 
 static void tick(void *timerHd)
 {
-  Instruction instruction = routine->getNextInstruction();
-  keyboard->event(instruction);
-  timerHandle1->SetTimeout(instruction._wait, false);
+  const Instruction& instruction = routine->getNextInstruction();
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", instruction._key, instruction._description.c_str());
+  keyboard->event(instruction._key);
+  auto timeout = instruction._wait;
+  timerHandle1->SetTimeout(timeout, false);
 }
 
 int main(int argc, char* argv[])
