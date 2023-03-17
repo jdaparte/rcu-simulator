@@ -12,8 +12,6 @@
 #include <fstream>
 #include <sstream>
 
-#define DEFAULT_DEVICE "/dev/input/event1"
-
 TimerHandle *timerHandle1 = nullptr;
 EpollServer *epollServer = nullptr;
 Keyboard    *keyboard = nullptr;
@@ -58,8 +56,11 @@ int main(int argc, char* argv[])
   }
 
   routine = new Routine(std::string(argv[1]));
-
-  const std::string device = DEFAULT_DEVICE;//std::string(argv[2]).empty() ? DEFAULT_DEVICE : std::string(argv[2]);
+  if (routine->getInstructionsSize() == 0) {
+    delete routine;
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "Error getting instructions");
+    return 1;
+  }
 
   epollServer = new EpollServer();
   keyboard = new Keyboard();
@@ -71,7 +72,7 @@ int main(int argc, char* argv[])
   timerHandle1->SetTimeout(timeOut2Seconds, false);
   epollServer->Add(timerHandle1);
 
-  if(keyboard->init(device.c_str())) {
+  if(keyboard->init()) {
     LOGGER->LOG(1, LOGLEVEL_ERROR, "init keyboard failed");
     keepRunning = false;
   }

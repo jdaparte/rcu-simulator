@@ -66,11 +66,14 @@ private:
   int16_t _fd;
   struct libevdev *_dev;
   struct libevdev_uinput *_uidev;
+  std::string _device {};
+
+  void selectInputDevice();
 
 public:
   ~Keyboard();
 
-  int16_t init(const char *devicePath);
+  int16_t init();
 
   void event(const std::string keyString, const EventType et = EventType::PRESSRELEASE);
   void event(const int key, const EventType et = EventType::PRESSRELEASE);

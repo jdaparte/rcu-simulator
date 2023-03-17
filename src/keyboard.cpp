@@ -2,10 +2,17 @@
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "keyboard.h"
 #include "Logger.h"
 
+#define BOXINFO_MANUFACTURERNAME "/boxinfo/ManufacturerName"
+#define DEV_INPUT_ARRIS     "/dev/input/event0"
+#define DEV_INPUT_HUMAX     "/dev/input/event1"
+#define HUMAX                    "HUMAX"
+#define ARRIS                    "ARRIS"
 
 Keyboard::~Keyboard()
 {
@@ -14,12 +21,34 @@ Keyboard::~Keyboard()
   close(_fd);
 }
 
-int16_t Keyboard::init(const char *devicePath)
+void Keyboard::selectInputDevice() 
 {
-  LOGGER->LOG(1, LOGLEVEL_INFO, "Keyboard init %s", devicePath);
-  if ((_fd = open(devicePath, O_WRONLY | O_NONBLOCK)) < 0)
+  std::ifstream fileStream;
+  std::string manufacturerName;
+  fileStream.open(BOXINFO_MANUFACTURERNAME, std::ifstream::in);
+
+  if (fileStream.is_open()) {
+    std::getline(fileStream, manufacturerName);
+    fileStream.close();
+
+    if (manufacturerName == ARRIS)      _device = DEV_INPUT_ARRIS;
+    else if (manufacturerName == HUMAX) _device = DEV_INPUT_HUMAX;
+
+    LOGGER->LOG(1, LOGLEVEL_INFO, "Manufacturer %s, using %s", manufacturerName.c_str(), _device.c_str());
+  }
+  else { 
+    _device = DEV_INPUT_ARRIS;
+    LOGGER->LOG(1, LOGLEVEL_INFO, "Manufacturer not supported, try open %s dev.", _device.c_str());
+  }
+}
+
+int16_t Keyboard::init()
+{
+  selectInputDevice();
+
+  if ((_fd = open(_device.c_str(), O_WRONLY | O_NONBLOCK)) < 0)
   {
-    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s", devicePath);
+    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s", _device);
     return -1;
   }
 

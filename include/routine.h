@@ -25,7 +25,7 @@ struct Routine
 {
   Routine(const std::string instructionsFileName);
   const Instruction& getNextInstruction();
-
+  inline uint8_t getInstructionsSize() { return instructions.size(); }
 
 private:
   std::vector<Instruction> instructions {};
