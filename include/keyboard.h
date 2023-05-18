@@ -3,8 +3,6 @@
 #include <string>
 #include <map>
 
-#define DEFAULT_DEVICE "/dev/input/event1"
-
 enum class EventType
 {
   PRESS,
@@ -73,7 +71,7 @@ private:
 public:
   ~Keyboard();
 
-  int16_t init();
+  int16_t init(std::string dev);
 
   void event(const std::string keyString, const EventType et = EventType::PRESSRELEASE);
   void event(const int key, const EventType et = EventType::PRESSRELEASE);
