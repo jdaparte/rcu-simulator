@@ -42,21 +42,23 @@ int main(int argc, char* argv[])
 {
   printf("\033[0;33m ********************************************************************* \033[0m\n");
   printf("\033[0;33m **                      RCU Events Simulator                       ** \033[0m\n");
-  printf("\033[0;33m **  tick Period is 2 seconds (minimum time between 2 key events)   ** \033[0m\n");
+  printf("\033[0;33m **  Usage:                                                         ** \033[0m\n");
+  printf("\033[0;33m **   Template: RcuSimulator <routine> <device>                     ** \033[0m\n");
+  printf("\033[0;33m **   Example:  RcuSimulator OpenAndCloseNetfplix /dev/input/event3 ** \033[0m\n");
   printf("\033[0;33m ********************************************************************* \033[0m\n");
 
   signal(SIGINT, intHandler);
   LOGGER->SetLogLevel(LOGLEVEL_ALL, 1);
 
-  if (argc != 2) {
-
+  if (argc < 2) {
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Invalid instructions file, please specify one.");
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Usage example: RcuSimulator instructions");
     return 0;
   }
 
   routine = new Routine(std::string(argv[1]));
-  if (routine->getInstructionsSize() == 0) {
+  if (routine->getInstructionsSize() == 0)
+  {
     delete routine;
     LOGGER->LOG(1, LOGLEVEL_ERROR, "Error getting instructions");
     return 1;
@@ -72,7 +74,11 @@ int main(int argc, char* argv[])
   timerHandle1->SetTimeout(timeOut2Seconds, false);
   epollServer->Add(timerHandle1);
 
-  if(keyboard->init()) {
+  std::string dev = "";
+  if (argc == 3) dev = std::string(argv[2]);
+
+  if(keyboard->init(dev))
+  {
     LOGGER->LOG(1, LOGLEVEL_ERROR, "init keyboard failed");
     keepRunning = false;
   }

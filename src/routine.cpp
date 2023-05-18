@@ -46,7 +46,7 @@ Routine::Routine(const std::string instructionsFileName)
 
   _nextInstruction = instructions.begin();
 
-  LOGGER->LOG(1, LOGLEVEL_INFO, "Instruction parsing completed, there are %d instructions.", instructions.size());
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Instructions parse completed, there are %d instructions.", instructions.size());
 }
 
 const Instruction& Routine::getNextInstruction()

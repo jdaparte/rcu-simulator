@@ -9,10 +9,12 @@
 #include "Logger.h"
 
 #define BOXINFO_MANUFACTURERNAME "/boxinfo/ManufacturerName"
-#define DEV_INPUT_ARRIS     "/dev/input/event0"
-#define DEV_INPUT_HUMAX     "/dev/input/event1"
+#define DEV_INPUT_ARRIS          "/dev/input/event0"
+#define DEV_INPUT_HUMAX          "/dev/input/event1"
+#define DEV_INPUT_SKYWORTH       "/dev/input/event3"
 #define HUMAX                    "HUMAX"
 #define ARRIS                    "ARRIS"
+#define SKYWORTH                 "SKYWORTH"
 
 Keyboard::~Keyboard()
 {
@@ -31,8 +33,9 @@ void Keyboard::selectInputDevice()
     std::getline(fileStream, manufacturerName);
     fileStream.close();
 
-    if (manufacturerName == ARRIS)      _device = DEV_INPUT_ARRIS;
-    else if (manufacturerName == HUMAX) _device = DEV_INPUT_HUMAX;
+    if (manufacturerName == ARRIS)         _device = DEV_INPUT_ARRIS;
+    else if (manufacturerName == HUMAX)    _device = DEV_INPUT_HUMAX;
+    else if (manufacturerName == SKYWORTH) _device = DEV_INPUT_SKYWORTH;
 
     LOGGER->LOG(1, LOGLEVEL_INFO, "Manufacturer %s, using %s", manufacturerName.c_str(), _device.c_str());
   }
@@ -42,13 +45,20 @@ void Keyboard::selectInputDevice()
   }
 }
 
-int16_t Keyboard::init()
+int16_t Keyboard::init(std::string dev)
 {
-  selectInputDevice();
+  if (!dev.empty()) 
+  {
+    _device = dev;
+  }
+  else
+  {
+    selectInputDevice();
+  }
 
   if ((_fd = open(_device.c_str(), O_WRONLY | O_NONBLOCK)) < 0)
   {
-    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s", _device);
+    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s, check if is a valid device.", _device.c_str());
     return -1;
   }
 
@@ -65,7 +75,8 @@ int16_t Keyboard::init()
     LOGGER->LOG(1, LOGLEVEL_WARNING, "Error libevdev device");
     return -1;
   }
-
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Device %s opened. In case the keys are not inyected, the device can be specified as the second parameter.", _device.c_str());
+  
   return 0;
 }
 
