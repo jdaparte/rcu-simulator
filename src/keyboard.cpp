@@ -2,24 +2,19 @@
 #include <libevdev/libevdev.h>
 #include <libevdev/libevdev-uinput.h>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 
 #include "keyboard.h"
 #include "Logger.h"
 
-
-Instruction::Instruction(int key, int wait, std::string description)
-: _key{key}, _wait{wait}, _description{description}
-{};
-
-
-Keyboard::Keyboard(const std::string device)
-{
-  if (openUInputDevice(device.c_str()) < 0)
-  {
-    LOGGER->LOG(1, LOGLEVEL_ERROR, "openUInputDevice failed");
-  }
-  sleep(3);
-}
+#define BOXINFO_MANUFACTURERNAME "/boxinfo/ManufacturerName"
+#define DEV_INPUT_ARRIS          "/dev/input/event0"
+#define DEV_INPUT_HUMAX          "/dev/input/event1"
+#define DEV_INPUT_SKYWORTH       "/dev/input/event3"
+#define HUMAX                    "HUMAX"
+#define ARRIS                    "ARRIS"
+#define SKYWORTH                 "SKYWORTH"
 
 Keyboard::~Keyboard()
 {
@@ -28,11 +23,42 @@ Keyboard::~Keyboard()
   close(_fd);
 }
 
-int16_t Keyboard::openUInputDevice(const char *devicePath)
+void Keyboard::selectInputDevice() 
 {
-  if ((_fd = open(devicePath, O_WRONLY | O_NONBLOCK)) < 0)
+  std::ifstream fileStream;
+  std::string manufacturerName;
+  fileStream.open(BOXINFO_MANUFACTURERNAME, std::ifstream::in);
+
+  if (fileStream.is_open()) {
+    std::getline(fileStream, manufacturerName);
+    fileStream.close();
+
+    if (manufacturerName == ARRIS)         _device = DEV_INPUT_ARRIS;
+    else if (manufacturerName == HUMAX)    _device = DEV_INPUT_HUMAX;
+    else if (manufacturerName == SKYWORTH) _device = DEV_INPUT_SKYWORTH;
+
+    LOGGER->LOG(1, LOGLEVEL_INFO, "Manufacturer %s, using %s", manufacturerName.c_str(), _device.c_str());
+  }
+  else { 
+    _device = DEV_INPUT_ARRIS;
+    LOGGER->LOG(1, LOGLEVEL_INFO, "Manufacturer not supported, try open %s dev.", _device.c_str());
+  }
+}
+
+int16_t Keyboard::init(std::string dev)
+{
+  if (!dev.empty()) 
   {
-    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s", devicePath);
+    _device = dev;
+  }
+  else
+  {
+    selectInputDevice();
+  }
+
+  if ((_fd = open(_device.c_str(), O_WRONLY | O_NONBLOCK)) < 0)
+  {
+    LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s, check if is a valid device.", _device.c_str());
     return -1;
   }
 
@@ -49,14 +75,26 @@ int16_t Keyboard::openUInputDevice(const char *devicePath)
     LOGGER->LOG(1, LOGLEVEL_WARNING, "Error libevdev device");
     return -1;
   }
-
+  LOGGER->LOG(1, LOGLEVEL_INFO, "Device %s opened. In case the keys are not inyected, the device can be specified as the second parameter.", _device.c_str());
+  
   return 0;
 }
 
-void Keyboard::event(int key, std::string description, EventType et)
+void Keyboard::event(const std::string keyString, const EventType et)
 {
-  LOGGER->LOG(1, LOGLEVEL_INFO, "Key %d event: %s", key, description.c_str());
+  try
+  {
+    const int key = Keys.at(keyString);
+    event(key, et);
+  }
+  catch(const std::exception& e)
+  {
+    LOGGER->LOG(1, LOGLEVEL_ERROR, "%s, Invalid key %s, skipped", e.what(), keyString.c_str());
+  }
+}
 
+void Keyboard::event(const int key, const EventType et)
+{
   if (et == EventType::PRESS || et == EventType::PRESSRELEASE)
   {
     libevdev_uinput_write_event(_uidev, EV_KEY, static_cast<uint32_t>(key), 1);

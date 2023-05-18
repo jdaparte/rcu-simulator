@@ -58,27 +58,21 @@ static const std::map<std::string, int>  Keys
   {"EXIT"      , 174}
 };
 
-struct Instruction
-{
-  Instruction(int key, int wait, std::string description);
-
-  int _key {0};
-  int _wait {0};
-  std::string _description {""};
-};
-
 class Keyboard
 {
 private:
   int16_t _fd;
   struct libevdev *_dev;
   struct libevdev_uinput *_uidev;
+  std::string _device {};
 
-  int16_t openUInputDevice(const char *devicePath);
+  void selectInputDevice();
 
 public:
-  Keyboard(const std::string device = "/dev/input/event1");
   ~Keyboard();
 
-  void event(int key, std::string description, EventType et = EventType::PRESSRELEASE);
+  int16_t init(std::string dev);
+
+  void event(const std::string keyString, const EventType et = EventType::PRESSRELEASE);
+  void event(const int key, const EventType et = EventType::PRESSRELEASE);
 };
