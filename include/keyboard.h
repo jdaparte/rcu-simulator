@@ -12,6 +12,7 @@ enum class EventType
 
 static const std::map<std::string, int>  Keys
 {
+  {"POWER"     , 116},
   {"MENU"      , 102},
   {"GUIDE"     , 365},
   {"UP"        , 103},

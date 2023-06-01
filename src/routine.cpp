@@ -56,7 +56,7 @@ const Instruction& Routine::getNextInstruction()
 
   if(_nextInstruction == instructions.end()) {
     _iteration++;
-    LOGGER->LOG(1, LOGLEVEL_INFO, "End of routine. Iteration %ld will begin.", _iteration);
+    LOGGER->LOG(1, LOGLEVEL_INFO, "End of routine. Iteration %llu will begin.", _iteration);
     _nextInstruction = instructions.begin();
   }
 
