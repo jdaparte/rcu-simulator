@@ -61,12 +61,14 @@ int16_t Keyboard::init(std::string dev)
     LOGGER->LOG(1, LOGLEVEL_WARNING, "Error creating FD to %s, check if is a valid device.", _device.c_str());
     return -1;
   }
+  sleep(1);
 
   if (libevdev_new_from_fd(_fd, &_dev) < 0)
   {
     LOGGER->LOG(1, LOGLEVEL_WARNING, "Error initializing libevdev on FD: %d", _fd);
     return -1;
   }
+  sleep(1);
 
   if (libevdev_uinput_create_from_device(_dev,
                                          LIBEVDEV_UINPUT_OPEN_MANAGED,
