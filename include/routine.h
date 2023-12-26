@@ -30,5 +30,5 @@ struct Routine
 private:
   std::vector<Instruction> instructions {};
   std::vector<Instruction>::iterator _nextInstruction;
-  std::uint64_t _iteration {0};
+  std::uint64_t _iteration {1};
 };

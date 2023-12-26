@@ -9,7 +9,7 @@
 #include "Logger.h"
 
 #define BOXINFO_MANUFACTURERNAME "/boxinfo/ManufacturerName"
-#define DEV_INPUT_ARRIS          "/dev/input/event0"
+#define DEV_INPUT_ARRIS          "/dev/input/event1"
 #define DEV_INPUT_HUMAX          "/dev/input/event1"
 #define DEV_INPUT_SKYWORTH       "/dev/input/event3"
 #define HUMAX                    "HUMAX"
@@ -76,6 +76,7 @@ int16_t Keyboard::init(std::string dev)
     return -1;
   }
   LOGGER->LOG(1, LOGLEVEL_INFO, "Device %s opened. In case the keys are not inyected, the device can be specified as the second parameter.", _device.c_str());
+  sleep(4);
   
   return 0;
 }
